@@ -4,12 +4,26 @@ import { mockLearners } from '../lib/mockData';
 import AddLearnerModal, { LearnerFormData } from '../components/AddLearnerModal';
 import SuccessNotification from '../components/SuccessNotification';
 
+interface Learner {
+  id: string;
+  full_name: string;
+  grade: string;
+  student_number: string;
+  email: string;
+  date_of_birth: string;
+  enrollment_date: string;
+  status: string;
+  avgScore: number;
+  teacher_id?: string;
+  created_at?: string;
+}
+
 // Key for localStorage
 const LOCAL_STORAGE_KEY = 'teacher-management-learners';
 
 export default function Learners() {
   // Load learners from localStorage or use mock data as fallback
-  const [learners, setLearners] = useState(() => {
+  const [learners, setLearners] = useState<Learner[]>(() => {
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (saved) {
@@ -59,7 +73,7 @@ export default function Learners() {
     if (learners.length > 0) {
       // Extract numeric IDs safely
       const numericIds = learners
-        .map((l: any) => {
+        .map((l: Learner) => {
           const num = parseInt(l.id, 10);
           return isNaN(num) ? 0 : num;
         })
@@ -130,7 +144,7 @@ export default function Learners() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-          {filteredLearners.map((learner: any) => (
+          {filteredLearners.map((learner: Learner) => (
             <div
               key={learner.id}
               className="border border-gray-200 rounded-lg p-3 md:p-4 hover:shadow-lg transition-all duration-200 hover:border-emerald-300"
@@ -186,14 +200,14 @@ export default function Learners() {
         <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
           <h3 className="font-bold text-gray-900 mb-2 text-sm md:text-base">Active This Term</h3>
           <p className="text-3xl md:text-4xl font-bold text-blue-700">
-            {learners.filter((l: any) => l.status === 'Active').length}
+            {learners.filter((l: Learner) => l.status === 'Active').length}
           </p>
           <p className="text-xs md:text-sm text-gray-600 mt-2">Currently enrolled</p>
         </div>
         <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
           <h3 className="font-bold text-gray-900 mb-2 text-sm md:text-base">Average Score</h3>
           <p className="text-3xl md:text-4xl font-bold text-purple-700">
-            {learners.length > 0 ? Math.round(learners.reduce((sum: number, l: any) => sum + l.avgScore, 0) / learners.length) : 0}%
+            {learners.length > 0 ? Math.round(learners.reduce((sum: number, l: Learner) => sum + l.avgScore, 0) / learners.length) : 0}%
           </p>
           <p className="text-xs md:text-sm text-gray-600 mt-2">Overall performance</p>
         </div>
