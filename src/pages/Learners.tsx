@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, UserPlus, Mail, Phone, Calendar, Users } from 'lucide-react';
+import { Search, Filter, UserPlus, Upload, Mail, Phone, Calendar, Users } from 'lucide-react';
 import { mockLearners } from '../lib/mockData';
 import AddLearnerModal, { LearnerFormData } from '../components/AddLearnerModal';
+import ImportLearnersModal, { ImportedLearner } from '../components/ImportLearnersModal';
 import SuccessNotification from '../components/SuccessNotification';
 
 interface Learner {
@@ -48,6 +49,7 @@ export default function Learners() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGrade, setSelectedGrade] = useState('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -78,25 +80,52 @@ export default function Learners() {
           return isNaN(num) ? 0 : num;
         })
         .filter((num: number) => num > 0);
-      
+
       const maxId = numericIds.length > 0 ? Math.max(...numericIds) : 0;
       newId = (maxId + 1).toString();
     }
-    
+
     // Generate a random average score between 60-95 for demonstration
     const randomScore = Math.floor(Math.random() * 36) + 60;
-    
+
     const newLearner = {
       ...learnerData,
       id: newId,
       avgScore: randomScore,
       status: learnerData.status || 'Active',
     };
-    
+
     setLearners([...learners, newLearner]);
     setSuccessMessage(`${learnerData.full_name} has been successfully added to ${learnerData.grade}!`);
     setShowSuccess(true);
     setIsModalOpen(false);
+  };
+
+  const handleImportLearners = (importedLearners: ImportedLearner[]) => {
+    const numericIds = learners
+      .map((l: Learner) => {
+        const num = parseInt(l.id, 10);
+        return isNaN(num) ? 0 : num;
+      })
+      .filter((num: number) => num > 0);
+
+    let maxId = numericIds.length > 0 ? Math.max(...numericIds) : 0;
+
+    const newLearners = importedLearners.map((learnerData) => {
+      maxId += 1;
+      const randomScore = Math.floor(Math.random() * 36) + 60;
+
+      return {
+        ...learnerData,
+        id: maxId.toString(),
+        avgScore: randomScore,
+      };
+    });
+
+    setLearners([...learners, ...newLearners]);
+    setSuccessMessage(`Successfully imported ${newLearners.length} learner${newLearners.length !== 1 ? 's' : ''}!`);
+    setShowSuccess(true);
+    setIsImportModalOpen(false);
   };
 
   return (
@@ -106,13 +135,22 @@ export default function Learners() {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Learner Management</h1>
           <p className="text-gray-600 mt-1 text-sm sm:text-base">Manage and track all your learners in one place</p>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="px-3 py-2 sm:px-4 sm:py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2 shadow-md text-sm sm:text-base"
-        >
-          <UserPlus className="w-3 h-3 sm:w-4 sm:h-4" />
-          Add Learner
-        </button>
+        <div className="flex gap-2 sm:gap-3">
+          <button
+            onClick={() => setIsImportModalOpen(true)}
+            className="px-3 py-2 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-md text-sm sm:text-base"
+          >
+            <Upload className="w-3 h-3 sm:w-4 sm:h-4" />
+            Import Learners
+          </button>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-3 py-2 sm:px-4 sm:py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2 shadow-md text-sm sm:text-base"
+          >
+            <UserPlus className="w-3 h-3 sm:w-4 sm:h-4" />
+            Add Learner
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-md p-6">
@@ -217,6 +255,12 @@ export default function Learners() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleAddLearner}
+      />
+
+      <ImportLearnersModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImport={handleImportLearners}
       />
 
       <SuccessNotification
